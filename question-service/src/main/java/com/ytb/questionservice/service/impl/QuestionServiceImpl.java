@@ -1,7 +1,9 @@
 package com.ytb.questionservice.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.ytb.common.common.ErrorCode;
@@ -9,13 +11,17 @@ import com.ytb.common.constant.CommonConstant;
 import com.ytb.common.exception.BusinessException;
 import com.ytb.common.exception.ThrowUtils;
 import com.ytb.common.utils.SqlUtils;
+import com.ytb.model.codesandbox.JudgeInfo;
 import com.ytb.model.dto.question.QuestionQueryRequest;
 import com.ytb.model.entity.Question;
+import com.ytb.model.entity.QuestionSubmit;
 import com.ytb.model.entity.User;
 import com.ytb.model.vo.QuestionVO;
 import com.ytb.model.vo.UserVO;
 import com.ytb.questionservice.mapper.QuestionMapper;
+import com.ytb.questionservice.mapper.QuestionSubmitMapper;
 import com.ytb.questionservice.service.QuestionService;
+import com.ytb.questionservice.service.QuestionSubmitService;
 import com.ytb.serviceclient.UserFeignClient;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -23,10 +29,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -38,6 +41,9 @@ import java.util.stream.Collectors;
 public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> implements QuestionService {
     @Resource
     private UserFeignClient userFeignClient;
+
+    @Resource
+    private QuestionSubmitMapper questionSubmitMapper;
 
     @Override
     public void validQuestion(Question question, boolean add) {
@@ -86,16 +92,14 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         }
         Long id = questionQueryRequest.getId();
         String title = questionQueryRequest.getTitle();
-        String content = questionQueryRequest.getContent();
         List<String> tags = questionQueryRequest.getTags();
-        String answer = questionQueryRequest.getAnswer();
         Long userId = questionQueryRequest.getUserId();
+        Integer difficulty = questionQueryRequest.getDifficulty();
+        String searchText = questionQueryRequest.getSearchText();
         String sortField = questionQueryRequest.getSortField();
         String sortOrder = questionQueryRequest.getSortOrder();
 
         queryWrapper.like(StringUtils.isNotBlank(title), "title", title);
-        queryWrapper.like(StringUtils.isNotBlank(content), "content", content);
-        queryWrapper.like(StringUtils.isNotBlank(answer), "answer", answer);
         if (CollUtil.isNotEmpty(tags)) {
             for (String tag : tags) {
                 queryWrapper.like("tags", "\"" + tag + "\"");
@@ -103,7 +107,8 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         }
         queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
         queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "userId", userId);
-        queryWrapper.eq("isDelete", false);
+        queryWrapper.eq(ObjectUtils.isNotEmpty(difficulty),"difficulty",difficulty);
+        queryWrapper.like(StringUtils.isNotBlank(searchText),"title",searchText);
         queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
                 sortField);
         return queryWrapper;
@@ -147,10 +152,49 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
                 user = userIdUserListMap.get(userId).get(0);
             }
             questionVO.setUserVO(userFeignClient.getUserVO(user));
+            //设置用户做题状态
+            int questionSubmitStatus = getQuestionSubmitStatus(question.getId(), request);
+            if (questionSubmitStatus != -1) {
+                questionVO.setState(questionSubmitStatus);
+            }
             return questionVO;
         }).collect(Collectors.toList());
         questionVOPage.setRecords(questionVOList);
+
         return questionVOPage;
+    }
+
+    /**
+     * 获取题库当前用户做题状态
+     * @param questionId
+     * @param request
+     * @return
+     */
+    public int getQuestionSubmitStatus(long questionId, HttpServletRequest request) {
+        User loginUser;
+        try {
+            loginUser = userFeignClient.getLoginUser(request);
+        } catch (Exception e) {
+            return -1;
+        }
+        Long userId = loginUser.getId();
+        QueryWrapper<QuestionSubmit> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "userId", userId);
+        queryWrapper.eq(ObjectUtils.isNotEmpty(questionId), "questionId", questionId);
+        List<QuestionSubmit> questionSubmitList = questionSubmitMapper.selectList(queryWrapper);
+        // 未找到
+        if (CollectionUtils.isEmpty(questionSubmitList)) {
+            return 1;
+        }
+        for (QuestionSubmit questionSubmit : questionSubmitList) {
+            String judgeInfoStr = questionSubmit.getJudgeInfo();
+            JudgeInfo judgeInfo = JSONUtil.toBean(judgeInfoStr, JudgeInfo.class);
+            String message = judgeInfo.getMessage();
+            if (Objects.equals(message, "Accepted")) {
+                return 3;
+            }
+        }
+        return 2;
     }
 }
 

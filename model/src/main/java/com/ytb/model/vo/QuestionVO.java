@@ -8,6 +8,7 @@ import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -45,6 +46,11 @@ public class QuestionVO implements Serializable {
     private Integer acceptedNum;
 
     /**
+     * 通过率
+     */
+    private BigDecimal passRate;
+
+    /**
      * 判题配置（json对象）
      */
     private JudgeConfig judgeConfig;
@@ -78,6 +84,16 @@ public class QuestionVO implements Serializable {
      * 题解
      */
     private String answer;
+
+    /**
+     * 难度
+     */
+    private Integer difficulty;
+
+    /**
+     * 用户做题状态
+     */
+    private Integer state;
 
     /**
      * 创建时间

@@ -48,12 +48,12 @@ public class JavaJudgeStrategy implements JudgeStrategy{
                 return judgeInfoResponse;
             }
             for (int j = 0;j < standOutputItemList.size();j++){
-                OutputItem standOutputItem = standOutputItemList.get(i);
+                OutputItem standOutputItem = standOutputItemList.get(j);
                 String standParamName = standOutputItem.getParamName();
                 String standParamValue = standOutputItem.getParamValue();
-                OutputItem answerOutputItem = answerOutputItemList.get(i);
+                OutputItem answerOutputItem = answerOutputItemList.get(j);
                 String answerParamName = answerOutputItem.getParamName();
-                String answerParamValue = answerOutputItem.getParamValue();
+                String answerParamValue = answerOutputItem.getParamValue().trim();
                 if (!standParamName.equals(answerParamName)){
                     judgeInfoMessageEnum = judgeInfoMessageEnum.WRONG_ANSWER;
                     judgeInfoResponse.setMessage(judgeInfoMessageEnum.getValue());

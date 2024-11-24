@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -50,6 +51,11 @@ public class Question implements Serializable {
     private Integer acceptedNum;
 
     /**
+     * 通过率
+     */
+    private BigDecimal passRate;
+
+    /**
      * 判题用例（json数组）
      */
     private String judgeCase;
@@ -77,7 +83,7 @@ public class Question implements Serializable {
     /**
      * 难度
      */
-    private String difficulty;
+    private Integer difficulty;
 
     /**
      * 模式
