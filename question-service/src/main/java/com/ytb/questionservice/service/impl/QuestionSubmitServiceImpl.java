@@ -8,6 +8,8 @@ import com.ytb.common.common.ErrorCode;
 import com.ytb.common.constant.CommonConstant;
 import com.ytb.common.exception.BusinessException;
 import com.ytb.common.utils.SqlUtils;
+import com.ytb.model.dto.question.TestCase;
+import com.ytb.model.dto.questionsubmit.QuestionRunRequest;
 import com.ytb.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import com.ytb.model.dto.questionsubmit.QuestionSubmitQueryRequest;
 import com.ytb.model.entity.Question;
@@ -15,6 +17,7 @@ import com.ytb.model.entity.QuestionSubmit;
 import com.ytb.model.entity.User;
 import com.ytb.model.enums.QuestionSubmitLanguageEnum;
 import com.ytb.model.enums.QuestionSubmitStatusEnum;
+import com.ytb.model.vo.QuestionRunVo;
 import com.ytb.model.vo.QuestionSubmitVO;
 import com.ytb.questionservice.mapper.QuestionSubmitMapper;
 import com.ytb.questionservice.rabbitmq.MyMessageProducer;
@@ -29,6 +32,8 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -149,6 +154,38 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         List<QuestionSubmitVO> questionSubmitVOList = questionSubmitList.stream().map(questionSubmit -> getQuestionSubmitVO(questionSubmit,loginUser)).collect(Collectors.toList());
         questionSubmitVOPage.setRecords(questionSubmitVOList);
         return questionSubmitVOPage;
+    }
+
+    @Override
+    public QuestionRunVo doQuestionRun(QuestionRunRequest questionRunRequest, User loginUser) {
+        //校验编程语言是否合法
+        String language = questionRunRequest.getLanguage();
+        QuestionSubmitLanguageEnum languageEnum = QuestionSubmitLanguageEnum.getEnumByValue(language);
+        if (languageEnum == null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"编程语言错误");
+        }
+        //校验题目信息是否合法
+        long questionId = questionRunRequest.getQuestionId();
+        Question question = questionService.getById(questionId);
+        if (question == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        //校验执行代码是否合法
+        String code = questionRunRequest.getCode();
+        if (StringUtils.isBlank(code)){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"执行代码为空");
+        }
+        List<TestCase> testCaseList = questionRunRequest.getTestCaseList();
+        if (testCaseList.isEmpty()){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"测试用例为空");
+        }
+        // 执行运行服务
+        AtomicReference<QuestionRunVo> questionRunVo = new AtomicReference<>(new QuestionRunVo());
+        CompletableFuture.runAsync(() -> {
+            questionRunVo.set(judgeFeignClient.doRun(questionRunRequest));
+        }).join();
+        return questionRunVo.get();
+
     }
 
 }

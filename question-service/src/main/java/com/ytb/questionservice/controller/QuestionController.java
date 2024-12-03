@@ -12,11 +12,13 @@ import com.ytb.common.constant.UserConstant;
 import com.ytb.common.exception.BusinessException;
 import com.ytb.common.exception.ThrowUtils;
 import com.ytb.model.dto.question.*;
+import com.ytb.model.dto.questionsubmit.QuestionRunRequest;
 import com.ytb.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import com.ytb.model.dto.questionsubmit.QuestionSubmitQueryRequest;
 import com.ytb.model.entity.Question;
 import com.ytb.model.entity.QuestionSubmit;
 import com.ytb.model.entity.User;
+import com.ytb.model.vo.QuestionRunVo;
 import com.ytb.model.vo.QuestionSubmitVO;
 import com.ytb.model.vo.QuestionVO;
 import com.ytb.questionservice.service.QuestionService;
@@ -313,6 +315,17 @@ public class QuestionController {
         long questionId = questionSubmitAddRequest.getQuestionId();
         long questionSubmitId = questionSubmitService.doQuestionSubmit(questionSubmitAddRequest, loginUser);
         return ResultUtils.success(questionSubmitId);
+    }
+
+    @PostMapping("/question_run/do")
+    public BaseResponse<QuestionRunVo> doQuestionRun(@RequestBody QuestionRunRequest questionRunRequest,
+                                               HttpServletRequest request) {
+        if (questionRunRequest == null || questionRunRequest.getQuestionId() <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        final User loginUser = userFeignClient.getLoginUser(request);
+        QuestionRunVo questionRunVo = questionSubmitService.doQuestionRun(questionRunRequest, loginUser);
+        return ResultUtils.success(questionRunVo);
     }
 
     /**

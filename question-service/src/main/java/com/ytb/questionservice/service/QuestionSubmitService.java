@@ -4,10 +4,12 @@ package com.ytb.questionservice.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.ytb.model.dto.questionsubmit.QuestionRunRequest;
 import com.ytb.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import com.ytb.model.dto.questionsubmit.QuestionSubmitQueryRequest;
 import com.ytb.model.entity.QuestionSubmit;
 import com.ytb.model.entity.User;
+import com.ytb.model.vo.QuestionRunVo;
 import com.ytb.model.vo.QuestionSubmitVO;
 
 /**
@@ -53,4 +55,5 @@ public interface QuestionSubmitService extends IService<QuestionSubmit> {
      */
     Page<QuestionSubmitVO> getQuestionSubmitVOPage(Page<QuestionSubmit> questionSubmitPage, User loginUser);
 
+    QuestionRunVo doQuestionRun(QuestionRunRequest questionRunRequest, User loginUser);
 }

@@ -16,6 +16,7 @@ public class CoreCodePatternStrategy implements PatternStrategy{
         Question question = patternContext.getQuestion();
         String judgeCode = question.getJudgeCode();
         List<List<InputItem>> inputTestCaseList = patternContext.getInputTestCaseList();
+        List<InputItem> inputTestCase = patternContext.getInputTestCase();
         if ("java".equalsIgnoreCase(language)) {
             //导入util包，scanner在这个包下
             code = "import java.util.*;" + code + judgeCode;
@@ -24,6 +25,7 @@ public class CoreCodePatternStrategy implements PatternStrategy{
                 .language(language)
                 .code(code)
                 .inputTestCaseList(inputTestCaseList)
+                .inputTestCase(inputTestCase)
                 .build();
         return executeCodeRequest;
     }

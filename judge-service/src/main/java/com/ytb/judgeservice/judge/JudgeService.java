@@ -1,7 +1,11 @@
 package com.ytb.judgeservice.judge;
 
 
+import com.ytb.model.dto.questionsubmit.QuestionRunRequest;
 import com.ytb.model.entity.QuestionSubmit;
+import com.ytb.model.vo.QuestionRunVo;
+
+import java.util.List;
 
 /**
  * 判题服务
@@ -14,4 +18,6 @@ public interface JudgeService {
      * @return
      */
     QuestionSubmit doJudge(long questionSubmitId);
+
+    QuestionRunVo doRun(QuestionRunRequest questionRunRequest);
 }

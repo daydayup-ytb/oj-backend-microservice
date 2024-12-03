@@ -19,4 +19,6 @@ public class PatternContext {
 
     private Question question;
 
+    private List<InputItem> inputTestCase;
+
 }

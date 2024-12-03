@@ -1,10 +1,17 @@
 package com.ytb.serviceclient;
 
 
+import com.ytb.model.dto.question.TestCase;
+import com.ytb.model.dto.questionsubmit.QuestionRunRequest;
 import com.ytb.model.entity.QuestionSubmit;
+import com.ytb.model.vo.QuestionRunResultVo;
+import com.ytb.model.vo.QuestionRunVo;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.List;
 
 /**
  * 判题服务
@@ -19,4 +26,8 @@ public interface JudgeFeignClient {
      */
     @PostMapping("/do")
     QuestionSubmit doJudge(@RequestParam(value = "questionSubmitId") long questionSubmitId);
+
+
+    @PostMapping("/doRun")
+    QuestionRunVo doRun(@RequestBody QuestionRunRequest questionRunRequest);
 }

@@ -15,14 +15,20 @@ import com.ytb.model.codesandbox.JudgeInfo;
 import com.ytb.model.dto.question.InputItem;
 import com.ytb.model.dto.question.OutputItem;
 import com.ytb.model.dto.question.TestCase;
+import com.ytb.model.dto.questionsubmit.QuestionRunRequest;
 import com.ytb.model.entity.Question;
 import com.ytb.model.entity.QuestionSubmit;
+import com.ytb.model.enums.QuestionSubmitLanguageEnum;
 import com.ytb.model.enums.QuestionSubmitStatusEnum;
+import com.ytb.model.vo.QuestionRunResultVo;
+import com.ytb.model.vo.QuestionRunVo;
 import com.ytb.serviceclient.QuestionFeignClient;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -111,5 +117,65 @@ public class JudgeServiceImpl implements JudgeService{
         }
         QuestionSubmit questionSubmitResult = questionFeignClient.getQuestionSubmitById(questionId);
         return questionSubmitResult;
+    }
+
+    @Override
+    public QuestionRunVo doRun(QuestionRunRequest questionRunRequest) {
+        //1.传入题目的提交 id。获取相对应的题目、提交信息（包含代码、编程语言等）
+        Long questionId = questionRunRequest.getQuestionId();
+        Question question = questionFeignClient.getQuestionById(questionId);
+        if (question == null){
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR,"题目不存在");
+        }
+        String language = questionRunRequest.getLanguage();
+        QuestionSubmitLanguageEnum languageEnum = QuestionSubmitLanguageEnum.getEnumByValue(language);
+        if (languageEnum == null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"编程语言错误");
+        }
+        String code = questionRunRequest.getCode();
+        //校验执行代码是否合法
+        if (StringUtils.isBlank(code)){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"执行代码为空");
+        }
+        List<TestCase> testCaseList = questionRunRequest.getTestCaseList();
+        if (testCaseList.isEmpty()){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"测试用例为空");
+        }
+        // 调用沙箱 获取执行结果
+        CodeSandBox codeSandBox = CodeSandBoxFactory.newInstance(type);
+        codeSandBox = new CodeSandBoxProxy(codeSandBox);
+        //获取输入用例
+        List<List<InputItem>> inputTestCaseList = testCaseList.stream().map(TestCase::getInput).collect(Collectors.toList());
+        List<QuestionRunResultVo> questionRunResultVoList = new ArrayList<>();
+        for (List<InputItem> inputTestCase : inputTestCaseList){
+            //根据不用的判题模式获取执行代码请求
+            PatternContext patternContext = new PatternContext();
+            patternContext.setPattern("CORE");
+            patternContext.setCode(code);
+            patternContext.setLanguage(language);
+            patternContext.setInputTestCase(inputTestCase);
+            patternContext.setQuestion(question);
+            ExecuteCodeRequest executeCodeRequest = patternManager.getExecuteCodeRequest(patternContext);
+            ExecuteCodeResponse executeCodeResponse = codeSandBox.executeCode(executeCodeRequest);
+            List<OutputItem> outputTestResult = executeCodeResponse.getOutputTestResult();
+            String correctCode = question.getCorrectCode();
+            patternContext.setCode(correctCode);
+            ExecuteCodeRequest executeCorrectCodeRequest = patternManager.getExecuteCodeRequest(patternContext);
+            ExecuteCodeResponse executeCorrectCodeResponse = codeSandBox.executeCode(executeCorrectCodeRequest);
+            List<OutputItem> outputTestCorrectCodeResult = executeCorrectCodeResponse.getOutputTestResult();
+            QuestionRunResultVo questionRunResultVo = new QuestionRunResultVo();
+            questionRunResultVo.setExecuteTime(executeCodeResponse.getJudgeInfo().getTime());
+            questionRunResultVo.setInput(inputTestCase);
+            questionRunResultVo.setOutput(outputTestResult);
+            questionRunResultVo.setExpectOutput(outputTestCorrectCodeResult);
+            questionRunResultVoList.add(questionRunResultVo);
+        }
+        QuestionRunVo questionRunVo = new QuestionRunVo();
+        questionRunVo.setCode(1);
+        questionRunVo.setMessage("通过");
+        questionRunVo.setQuestionRunResultVoList(questionRunResultVoList);
+        questionRunVo.setExecuteTime(100L);
+        return questionRunVo;
+
     }
 }

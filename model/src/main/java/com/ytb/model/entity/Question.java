@@ -101,6 +101,11 @@ public class Question implements Serializable {
     private String judgeCode;
 
     /**
+     * 正确代码
+     */
+    private String correctCode;
+
+    /**
      * 创建时间
      */
     private Date createTime;
