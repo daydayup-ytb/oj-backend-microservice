@@ -10,6 +10,11 @@ import java.util.List;
 public class QuestionRunResultVo {
 
     /**
+     * 编号
+     */
+    private Long id;
+
+    /**
      * 结果代码
      */
     private Integer code;

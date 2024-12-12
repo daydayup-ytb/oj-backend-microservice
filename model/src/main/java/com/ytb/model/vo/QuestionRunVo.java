@@ -18,6 +18,11 @@ public class QuestionRunVo {
     private String message;
 
     /**
+     * 错误日志
+     */
+    private String errorInfo;
+
+    /**
      * 执行时间
      */
     private Long executeTime;

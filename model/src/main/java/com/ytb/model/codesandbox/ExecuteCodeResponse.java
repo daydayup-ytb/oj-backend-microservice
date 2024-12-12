@@ -14,10 +14,10 @@ import java.util.List;
 @NoArgsConstructor
 public class ExecuteCodeResponse {
 
-    private List<List<OutputItem>> outputTestResultList;
+    private Integer code;
 
     /**
-     * 接口信息
+     * 信息
      */
     private String message;
 
@@ -28,9 +28,16 @@ public class ExecuteCodeResponse {
 
 
     /**
+     * 错误信息
+     */
+    private String errorInfo;
+
+    /**
      * 判题信息
      */
     private JudgeInfo judgeInfo;
 
     private List<OutputItem> outputTestResult;
+
+    private List<List<OutputItem>> outputTestResultList;
 }

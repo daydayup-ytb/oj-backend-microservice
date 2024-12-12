@@ -1,5 +1,6 @@
 package com.ytb.judgeservice.judge;
 
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 
 import com.ytb.common.common.ErrorCode;
@@ -147,7 +148,12 @@ public class JudgeServiceImpl implements JudgeService{
         //获取输入用例
         List<List<InputItem>> inputTestCaseList = testCaseList.stream().map(TestCase::getInput).collect(Collectors.toList());
         List<QuestionRunResultVo> questionRunResultVoList = new ArrayList<>();
+        QuestionRunVo questionRunVo = new QuestionRunVo();
+        //题目运行是否通过
+        boolean questionRunPassFlag = true;
         for (List<InputItem> inputTestCase : inputTestCaseList){
+            //测试用例是否通过
+            boolean testCasePassFlag = true;
             //根据不用的判题模式获取执行代码请求
             PatternContext patternContext = new PatternContext();
             patternContext.setPattern("CORE");
@@ -162,17 +168,62 @@ public class JudgeServiceImpl implements JudgeService{
             patternContext.setCode(correctCode);
             ExecuteCodeRequest executeCorrectCodeRequest = patternManager.getExecuteCodeRequest(patternContext);
             ExecuteCodeResponse executeCorrectCodeResponse = codeSandBox.executeCode(executeCorrectCodeRequest);
+            //编译错误
+            if (executeCodeResponse.getCode() == 8001){
+                questionRunVo.setCode(8001);
+                questionRunVo.setMessage("编译错误");
+                questionRunVo.setErrorInfo(executeCodeResponse.getErrorInfo());
+                return questionRunVo;
+            }
+            if (executeCodeResponse.getCode() == 8002){
+                questionRunVo.setCode(8002);
+                questionRunVo.setMessage("运行错误");
+                questionRunVo.setErrorInfo(executeCodeResponse.getErrorInfo());
+                return questionRunVo;
+            }
             List<OutputItem> outputTestCorrectCodeResult = executeCorrectCodeResponse.getOutputTestResult();
             QuestionRunResultVo questionRunResultVo = new QuestionRunResultVo();
+            if (outputTestCorrectCodeResult.size() != outputTestResult.size()){
+                testCasePassFlag = false;
+                questionRunPassFlag = false;
+            }
+            for (int i = 0; i < outputTestCorrectCodeResult.size(); i++) {
+                OutputItem correctOutputItem = outputTestCorrectCodeResult.get(i);
+                OutputItem testOutputItem = outputTestResult.get(i);
+                if (!correctOutputItem.getParamName().equals(testOutputItem.getParamName())){
+                    testCasePassFlag = false;
+                    questionRunPassFlag = false;
+                }
+                if (!correctOutputItem.getParamValue().equals(testOutputItem.getParamValue())){
+                    testCasePassFlag = false;
+                    questionRunPassFlag = false;
+                }
+            }
+            //测试用例是否通过
+            if (testCasePassFlag){
+                questionRunResultVo.setCode(8000);
+                questionRunResultVo.setMessage("通过");
+            }else{
+                questionRunResultVo.setCode(8003);
+                questionRunResultVo.setMessage("未通过");
+            }
+            questionRunResultVo.setId(IdUtil.getSnowflakeNextId());
             questionRunResultVo.setExecuteTime(executeCodeResponse.getJudgeInfo().getTime());
             questionRunResultVo.setInput(inputTestCase);
             questionRunResultVo.setOutput(outputTestResult);
             questionRunResultVo.setExpectOutput(outputTestCorrectCodeResult);
             questionRunResultVoList.add(questionRunResultVo);
         }
-        QuestionRunVo questionRunVo = new QuestionRunVo();
-        questionRunVo.setCode(1);
-        questionRunVo.setMessage("通过");
+
+
+        //题目运行是否通过
+        if (questionRunPassFlag){
+            questionRunVo.setCode(8000);
+            questionRunVo.setMessage("通过");
+        }else{
+            questionRunVo.setCode(8003);
+            questionRunVo.setMessage("未通过");
+        }
         questionRunVo.setQuestionRunResultVoList(questionRunResultVoList);
         questionRunVo.setExecuteTime(100L);
         return questionRunVo;
