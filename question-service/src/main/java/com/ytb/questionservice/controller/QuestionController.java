@@ -34,8 +34,6 @@ import java.util.List;
 
 /**
  * 题目接口
- *
-
  */
 @RestController
 @RequestMapping("/")
@@ -72,11 +70,11 @@ public class QuestionController {
             question.setTags(JSONUtil.toJsonStr(tags));
         }
         JudgeConfig judgeConfig = questionAddRequest.getJudgeConfig();
-        if (judgeConfig != null){
+        if (judgeConfig != null) {
             question.setJudgeConfig(JSONUtil.toJsonStr(judgeConfig));
         }
         List<TestCase> judgeCase = questionAddRequest.getJudgeCase();
-        if (judgeCase != null){
+        if (judgeCase != null) {
             question.setJudgeCase(JSONUtil.toJsonStr(judgeCase));
         }
         questionService.validQuestion(question, true);
@@ -134,11 +132,11 @@ public class QuestionController {
             question.setTags(JSONUtil.toJsonStr(tags));
         }
         JudgeConfig judgeConfig = questionUpdateRequest.getJudgeConfig();
-        if (judgeConfig != null){
+        if (judgeConfig != null) {
             question.setJudgeConfig(JSONUtil.toJsonStr(judgeConfig));
         }
         List<TestCase> judgeCase = questionUpdateRequest.getJudgeCase();
-        if (judgeCase != null){
+        if (judgeCase != null) {
             question.setJudgeCase(JSONUtil.toJsonStr(judgeCase));
         }
         // 参数校验
@@ -168,7 +166,7 @@ public class QuestionController {
         }
         User loginUser = userFeignClient.getLoginUser(request);
         //不是本人或管理员
-        if (!question.getUserId().equals(loginUser.getId()) && !userFeignClient.isAdmin(loginUser)){
+        if (!question.getUserId().equals(loginUser.getId()) && !userFeignClient.isAdmin(loginUser)) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
         return ResultUtils.success(question);
@@ -217,7 +215,7 @@ public class QuestionController {
      */
     @PostMapping("/list/page/vo")
     public BaseResponse<Page<QuestionVO>> listQuestionVOByPage(@RequestBody QuestionQueryRequest questionQueryRequest,
-            HttpServletRequest request) {
+                                                               HttpServletRequest request) {
         long current = questionQueryRequest.getCurrent();
         long size = questionQueryRequest.getPageSize();
         // 限制爬虫
@@ -236,7 +234,7 @@ public class QuestionController {
      */
     @PostMapping("/my/list/page/vo")
     public BaseResponse<Page<QuestionVO>> listMyQuestionVOByPage(@RequestBody QuestionQueryRequest questionQueryRequest,
-            HttpServletRequest request) {
+                                                                 HttpServletRequest request) {
         if (questionQueryRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -252,7 +250,6 @@ public class QuestionController {
     }
 
     // endregion
-
 
 
     /**
@@ -274,11 +271,11 @@ public class QuestionController {
             question.setTags(JSONUtil.toJsonStr(tags));
         }
         JudgeConfig judgeConfig = questionEditRequest.getJudgeConfig();
-        if (judgeConfig != null){
+        if (judgeConfig != null) {
             question.setJudgeConfig(JSONUtil.toJsonStr(judgeConfig));
         }
         List<TestCase> judgeCase = questionEditRequest.getJudgeCase();
-        if (judgeCase != null){
+        if (judgeCase != null) {
             question.setJudgeCase(JSONUtil.toJsonStr(judgeCase));
         }
         // 参数校验
@@ -319,7 +316,7 @@ public class QuestionController {
 
     @PostMapping("/question_run/do")
     public BaseResponse<QuestionRunVo> doQuestionRun(@RequestBody QuestionRunRequest questionRunRequest,
-                                               HttpServletRequest request) {
+                                                     HttpServletRequest request) {
         if (questionRunRequest == null || questionRunRequest.getQuestionId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -343,7 +340,43 @@ public class QuestionController {
                 questionSubmitService.getQueryWrapper(questionSubmitQueryRequest));
         final User loginUser = userFeignClient.getLoginUser(request);
         // 返回脱敏信息
-        return ResultUtils.success(questionSubmitService.getQuestionSubmitVOPage(questionSubmitPage,loginUser));
+        return ResultUtils.success(questionSubmitService.getQuestionSubmitVOPage(questionSubmitPage, loginUser));
+    }
+
+    @GetMapping("/questionSubmit/get/vo")
+    public BaseResponse<QuestionSubmitVO> getQuestionSubmitVOById(long id, HttpServletRequest request) {
+        if (id <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        QuestionSubmit questionSubmit = questionSubmitService.getById(id);
+        if (questionSubmit == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        final User loginUser = userFeignClient.getLoginUser(request);
+        return ResultUtils.success(questionSubmitService.getQuestionSubmitVO(questionSubmit, loginUser));
+    }
+
+    /**
+     * 根据 id 获取
+     *
+     * @param id
+     * @return
+     */
+    @GetMapping("/questionSubmit/get")
+    public BaseResponse<QuestionSubmit> getQuestionSubmitById(long id, HttpServletRequest request) {
+        if (id <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        QuestionSubmit questionSubmit = questionSubmitService.getById(id);
+        if (questionSubmit == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        User loginUser = userFeignClient.getLoginUser(request);
+        //不是本人或管理员
+        if (!questionSubmit.getUserId().equals(loginUser.getId()) && !userFeignClient.isAdmin(loginUser)) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        }
+        return ResultUtils.success(questionSubmit);
     }
 
 }

@@ -1,8 +1,7 @@
 # 公共配置文件
-
 spring:
   application:
-    name: oj-backend-question-service
+    name: oj-backend-user-service
   # 支持 swagger3
   mvc:
     pathmatch:
@@ -16,14 +15,14 @@ spring:
   # 数据库配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/yuoj
+    url: jdbc:mysql://mysql:3306/oj
     username: root
     password: 123123
   # Redis 配置
   # todo 需替换配置，然后取消注释
   redis:
     database: 1
-    host: localhost
+    host: redis
     port: 6379
     timeout: 5000
   # 文件上传
@@ -34,17 +33,12 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: localhost:8848
-  rabbitmq:
-    host: localhost
-    port: 5672
-    password: guest
-    username: guest
+        server-addr: nacos:8848
 server:
   address: 0.0.0.0
-  port: 8103
+  port: 8102
   servlet:
-    context-path: /api/question
+    context-path: /api/user
     # cookie 30 天过期
     session:
       cookie:
