@@ -13,25 +13,31 @@ import java.util.stream.Collectors;
  */
 public enum JudgeInfoMessageEnum {
 
-    ACCEPTED("成功", "Accepted"),
-    WRONG_ANSWER("答案错误", "Wrong Answer"),
-    COMPILE_ERROR("编译错误", "compile error"),
-    MEMORY_LIMIT_EXCEEDED("内存溢出", "memory limit exceeded"),
-    TIME_LIMIT_EXCEEDED("超时", "time limit exceeded"),
-    PRESENTATION_ERROR("展示错误", "presentation error"),
-    WAITING("等待中", "waiting"),
-    OUTPUT_LIMIT_EXCEEDED("输出溢出", "output limit exceeded"),
-    DANGEROUS_OPERATION("危险操作", "dangerous operation"),
-    RUNTIME_ERROR("运行错误", "runtime error"),
-    SYSTEM_ERROR("系统错误", "system error");
+    ACCEPTED("成功", 8001,"Accepted"),
+    WRONG_ANSWER("答案错误", 8002,"Wrong Answer"),
+    COMPILE_ERROR("编译错误", 8003,"compile error"),
+    MEMORY_LIMIT_EXCEEDED("内存溢出",8004, "memory limit exceeded"),
+    TIME_LIMIT_EXCEEDED("超时", 8005,"time limit exceeded"),
+    PRESENTATION_ERROR("展示错误", 8006,"presentation error"),
+    WAITING("等待中", 8007,"waiting"),
+    OUTPUT_LIMIT_EXCEEDED("输出溢出", 8008,"output limit exceeded"),
+    DANGEROUS_OPERATION("危险操作", 8009,"dangerous operation"),
+    RUNTIME_ERROR("运行错误", 8010,"runtime error"),
+    PASS("通过", 8011,"pass"),
+    NO_PASS("不通过", 8012,"no pass"),
+    TESTCASE_ERROR("测试用例错误", 8013,"test case error"),
+    SYSTEM_ERROR("系统错误", 8014,"system error");
 
     private final String text;
 
-    private final String value;
+    private final Integer value;
 
-    JudgeInfoMessageEnum(String text, String value) {
+    private final String message;
+
+    JudgeInfoMessageEnum(String text, Integer value,String message) {
         this.text = text;
         this.value = value;
+        this.message = message;
     }
 
     /**
@@ -39,7 +45,7 @@ public enum JudgeInfoMessageEnum {
      *
      * @return
      */
-    public static List<String> getValues() {
+    public static List<Integer> getValues() {
         return Arrays.stream(values()).map(item -> item.value).collect(Collectors.toList());
     }
 
@@ -49,7 +55,7 @@ public enum JudgeInfoMessageEnum {
      * @param value
      * @return
      */
-    public static JudgeInfoMessageEnum getEnumByValue(String value) {
+    public static JudgeInfoMessageEnum getEnumByValue(Integer value) {
         if (ObjectUtils.isEmpty(value)) {
             return null;
         }
@@ -61,11 +67,15 @@ public enum JudgeInfoMessageEnum {
         return null;
     }
 
-    public String getValue() {
+    public Integer getValue() {
         return value;
     }
 
     public String getText() {
         return text;
+    }
+
+    public String getMessage() {
+        return message;
     }
 }

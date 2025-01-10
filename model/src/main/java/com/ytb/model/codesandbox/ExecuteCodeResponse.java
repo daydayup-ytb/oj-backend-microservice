@@ -14,23 +14,10 @@ import java.util.List;
 @NoArgsConstructor
 public class ExecuteCodeResponse {
 
-    private Integer code;
-
     /**
-     * 信息
+     * 代码沙箱执行结果信息
      */
-    private String message;
-
-    /**
-     * 执行状态
-     */
-    private Integer status;
-
-
-    /**
-     * 错误信息
-     */
-    private String errorInfo;
+    private ExecuteResultInfo executeResultInfo;
 
     /**
      * 判题信息

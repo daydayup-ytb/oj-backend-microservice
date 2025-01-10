@@ -59,7 +59,7 @@ public class UserController {
         String userPassword = userRegisterRequest.getUserPassword();
         String checkPassword = userRegisterRequest.getCheckPassword();
         if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)) {
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
         }
         long result = userService.userRegister(userAccount, userPassword, checkPassword);
         return ResultUtils.success(result);
@@ -130,6 +130,10 @@ public class UserController {
     public BaseResponse<Long> addUser(@RequestBody UserAddRequest userAddRequest, HttpServletRequest request) {
         if (userAddRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        String userAccount = userAddRequest.getUserAccount();
+        if (StringUtils.isAnyBlank(userAccount)){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"参数错误");
         }
         User user = new User();
         BeanUtils.copyProperties(userAddRequest, user);

@@ -72,8 +72,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             User user = new User();
             user.setUserAccount(userAccount);
             user.setUserPassword(encryptPassword);
-            boolean saveResult = this.save(user);
-            if (!saveResult) {
+            user.setUserName("OJ用户");
+            user.setUserAvatar("https://oj-20250108.oss-cn-beijing.aliyuncs.com/avatar.jpg?Expires=1736360574&OSSAccessKeyId=TMP.3KkWkdTy1jHciEYA5BkPH4K2hkQsJDYRJBtwcSSgbmtepa51h2sVawpNgAoJFw3Zos3XZ7X1fGjbPYwFxWMDtmvvNMVY9H&Signature=1sPWvswDwI2qclEPhSU9O62bAd0%3D");
+            int saveResult = this.baseMapper.insert(user);
+            if (saveResult != 1) {
                 throw new BusinessException(ErrorCode.SYSTEM_ERROR, "注册失败，数据库错误");
             }
             return user.getId();
@@ -126,7 +128,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         // 从数据库查询（追求性能的话可以注释，直接走缓存）
         long userId = currentUser.getId();
-        currentUser = this.getById(userId);
+        currentUser = this.baseMapper.selectById(userId);
         if (currentUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
         }

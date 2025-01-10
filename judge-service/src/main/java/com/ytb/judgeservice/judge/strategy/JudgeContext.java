@@ -1,5 +1,6 @@
 package com.ytb.judgeservice.judge.strategy;
 
+import com.ytb.model.codesandbox.ExecuteResultInfo;
 import com.ytb.model.codesandbox.JudgeInfo;
 import com.ytb.model.dto.question.InputItem;
 import com.ytb.model.dto.question.OutputItem;
@@ -17,6 +18,8 @@ import java.util.List;
 public class JudgeContext {
 
     private JudgeInfo judgeInfo;
+
+    private ExecuteResultInfo executeResultInfo;
 
     private List<List<InputItem>> inputTestCaseList;
 
