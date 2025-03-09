@@ -21,7 +21,7 @@ public class RemoteCodeSandBox implements CodeSandBox {
 
     public static final String AUTH_REQUEST_SECRET = "secretKey";
 
-    private static final String url = "http://localhost:8090/executeCode";
+    private static final String url = "http://111.231.5.19:8090/executeCode";
     @Override
     public ExecuteCodeResponse executeCode(ExecuteCodeRequest executeCodeRequest) {
         log.info("调用远程代码沙箱");

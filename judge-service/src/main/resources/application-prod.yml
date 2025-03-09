@@ -65,4 +65,3 @@ knife4j:
 # 代码沙箱配置
 codesandbox:
   type: remote
-  host: 111.231.5.199
